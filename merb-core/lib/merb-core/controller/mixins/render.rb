@@ -2,8 +2,8 @@ module Merb::RenderMixin
   # So we can do raise TemplateNotFound
   include Merb::ControllerExceptions
 
-  # ==== Parameters
-  # base<Module>:: Module that is including RenderMixin (probably a controller)
+  # @param [Module] base Module that is including RenderMixin (probably
+  #   a controller)
   #
   # @private
   def self.included(base)
@@ -21,47 +21,44 @@ module Merb::RenderMixin
 
     # Return the default render options.
     #
-    # ==== Returns
-    # Hash:: An options hash
+    # @return [Hash] An options hash
     #
-    # :api: public
+    # @api public
     def default_render_options
       self._default_render_options ||= {}
     end
 
     # Set default render options at the class level.
     #
-    # ==== Parameters
-    # opts<Hash>:: An options hash
+    # @param [Hash] opts<Hash> An options hash
     #
-    # :api: public
+    # @api public
     def render_options(opts)
       self._default_render_options = opts
     end
 
-    # Set the default layout to use or nil/false to disable layout rendering.
-    # This is a shortcut for render_options :layout => false.
+    # Set the default layout to use or `nil`/`false` to disable layout
+    # rendering.
     #
-    # ==== Parameters
-    # layout<~to_s>:: The layout that should be used for this class.
+    # This is a shortcut for
+    #     render_options :layout => false.
     #
-    # ==== Notes
-    # You can override by passing :layout => true to render method.
+    # @param [#to_s] layout The layout that should be used for this class.
     #
-    # ==== Returns
-    # Hash:: The default render options.
+    # @note You can override by passing `:layout => true` to render method.
     #
-    # :api: public
+    # @return [Hash] The default render options.
+    #
+    # @api public
     def layout(layout)
       self.default_render_options.update(:layout => (layout || false))
     end
 
     # Enable the default layout logic - reset the layout option.
     #
-    # ==== Returns
-    # ~to_s:: The layout that was previously set.
+    # @return [#to_s] The layout that was previously set.
     #
-    # :api: public
+    # @api public
     def default_layout
       self.default_render_options.delete(:layout)
     end
@@ -70,37 +67,35 @@ module Merb::RenderMixin
 
   # Render the specified item, with the specified options.
   #
-  # ==== Parameters
-  # thing<String, Symbol, nil>::
-  #   The thing to render. This will default to the current action
-  # opts<Hash>:: An options hash (see below)
-  #
-  # ==== Options (opts)
-  # :format<Symbol>:: A registered mime-type format
-  # :template<String>::
-  #   The path to the template relative to the template root
-  # :status<~to_i>::
-  #   The status to send to the client. Typically, this would be an integer
-  #   (200), or a Merb status code (Accepted)
-  # :layout<~to_s, FalseClass>::
-  #   A layout to use instead of the default. This should be relative to the
-  #   layout root. By default, the layout will be either the controller_name or
-  #   application. If you want to use an alternative content-type than the one
-  #   that the base template was rendered as, you will need to do :layout =>
-  #   "foo.#{content_type}" (i.e. "foo.json"). If you want to render without
-  #   layout, use :layout => false. This overrides layout set by +layout+ method.
-  #
-  # ==== Returns
-  # String:: The rendered template, including layout, if appropriate.
-  #
-  # ==== Raises
-  # TemplateNotFound:: There is no template for the specified location.
-  #
-  # ==== Alternatives
+  # #### Alternatives
   # If you pass a Hash as the first parameter, it will be moved to opts and
   # "thing" will be the current action
   #
-  # :api: public
+  # @param [String, Symbol, nil] thing The thing to render. This will
+  #   default to the current action
+  # @param [Hash] opts An options hash.
+  # @option opts [Symbol] :format
+  #   A registered mime-type format
+  # @option opts [String] :template
+  #   The path to the template relative to the template root
+  # @option opts [#to_i] :status
+  #   The status to send to the client. Typically, this would be an integer
+  #   (200), or a Merb status code (Accepted)
+  # @option opts [#to_s, FalseClass] :layout
+  #   A layout to use instead of the default. This should be relative to the
+  #   layout root. By default, the layout will be either the controller_name or
+  #   application. If you want to use an alternative content-type than the one
+  #   that the base template was rendered as, you will need to do
+  #       :layout => "foo.#{content_type}"
+  #   (e.g., "foo.json"). If you want to render without layout, use
+  #       :layout => false
+  #   to override the layout set by the `#layout` method.
+  #
+  # @return [String] The rendered template, including layout, if appropriate.
+  #
+  # @raise [TemplateNotFound] There is no template for the specified location.
+  #
+  # @api public
   def render(thing = nil, opts = {})
     # render :format => :xml means render nil, :format => :xml
     opts, thing = thing, nil if thing.is_a?(Hash)
@@ -149,63 +144,51 @@ module Merb::RenderMixin
 
   # Renders an object using to registered transform method based on the
   # negotiated content-type, if a template does not exist. For instance, if the
-  # content-type is :json, Merb will first look for current_action.json.*.
-  # Failing that, it will run object.to_json.
+  # content-type is `:json`, Merb will first look for `current_action.json.*`.
+  # Failing that, it will run `object.to_json`.
   #
-  # ==== Parameter
-  # object<Object>::
-  #   An object that responds_to? the transform method registered for the
-  #   negotiated mime-type.
-  # thing<String, Symbol>::
-  #   The thing to attempt to render via #render before calling the transform
-  #   method on the object. Defaults to nil.
-  # opts<Hash>::
-  #   An options hash that will be used for rendering
-  #   (passed on to #render or serialization methods like #to_json or #to_xml)
-  #
-  # ==== Returns
-  # String::
-  #   The rendered template or if no template is found, the transformed object.
-  #
-  # ==== Raises
-  # NotAcceptable::
-  #   If there is no transform method for the specified mime-type or the object
-  #   does not respond to the transform method.
-  #
-  # ==== Alternatives
+  # #### Alternatives
   # A string in the second parameter will be interpreted as a template:
-  #   display @object, "path/to/foo"
-  #   #=> display @object, nil, :template => "path/to/foo"
+  #     display @object, "path/to/foo"
+  #     # => display @object, nil, :template => "path/to/foo"
   #
   # A hash in the second parameters will be interpreted as opts:
-  #   display @object, :layout => "zoo"
-  #   #=> display @object, nil, :layout => "zoo"
+  #     display @object, :layout => "zoo"
+  #     # => display @object, nil, :layout => "zoo"
   #
   # If you need to pass extra parameters to serialization method, for instance,
   # to exclude some of attributes or serialize associations, just pass options
-  # for it.
-  # For instance,
-  #
-  # display @locations, :except => [:locatable_type, :locatable_id], :include => [:locatable]
-  #
+  # for it. For instance,
+  #     display @locations, :except => [:locatable_type, :locatable_id], :include => [:locatable]
   # serializes object with polymorphic association, not raw locatable_* attributes.
   #
+  # @param [Object] object An object that responds_to? the transform method
+  #   registered for the negotiated mime-type.
+  # @param [String, Symbol] thing The thing to attempt to render via
+  #   {#render} before calling the transform method on the object.
+  # @param [Hash] opts An options hash that will be used for rendering.
+  #   Options other than the documented ones will be passed on to {#render}
+  #   or serialization methods like `#to_json` or `#to_xml`.
+  # @option opts [String] :template
+  #   A template to use for rendering.
+  # @option opts [String] :layout
+  #  A layout to use for rendering.
+  # @option opts [#to_i] :status (200)
+  #  The status code to return.
+  # @option opts [String] :location
+  #  The value of the Location header.
+  # @todo Docs: make sure the types and defaults in the opts hash are correct.
   #
-  # ==== Options
+  # @return [String] The rendered template or if no template is found, the
+  #   transformed object.
   #
-  # :template                a template to use for rendering
-  # :layout                  a layout to use for rendering
-  # :status                  the status code to return (defaults to 200)
-  # :location                the value of the Location header
+  # @raise [NotAcceptable] If there is no transform method for the specified
+  #   mime-type or the object does not respond to the transform method.
   #
-  # all other options        options that will be pass to serialization method
-  #                          like #to_json or #to_xml
+  # @note The transformed object will not be used in a layout unless a
+  #   `:layout` is explicitly passed in the opts.
   #
-  # ==== Notes
-  # The transformed object will not be used in a layout unless a :layout is
-  # explicitly passed in the opts.
-  #
-  # :api: public
+  # @api public
   def display(object, thing = nil, opts = {})
     template_opt = thing.is_a?(Hash) ? thing.delete(:template) : opts.delete(:template)
 
@@ -245,49 +228,47 @@ module Merb::RenderMixin
 
   # Render a partial template.
   #
-  # ==== Parameters
-  # template<~to_s>::
-  #   The path to the template, relative to the current controller or the
-  #   template root; absolute path will work too. If the template contains a "/", 
-  #   Merb will search for it relative to the template root; otherwise, 
-  #   Merb will search for it relative to the current controller.
-  # opts<Hash>:: A hash of options (see below)
-  #
-  # ==== Options (opts)
-  # :with<Object, Array>::
-  #   An object or an array of objects that will be passed into the partial.
-  # :as<~to_sym>:: The local name of the :with Object inside of the partial.
-  # :format<Symbol>:: The mime format that you want the partial to be in (:js, :html, etc.)
-  # others::
-  #   A Hash object names and values that will be the local names and values
-  #   inside the partial.
-  #
-  # ==== Examples
-  #   partial :foo, :hello => @object
+  #     partial :foo, :hello => @object
   #
   # The "_foo" partial will be called, relative to the current controller,
-  # with a local variable of +hello+ inside of it, assigned to @object.
+  # with a local variable of `hello` inside of it, assigned to @object.
   #
-  #   partial :bar, :with => ['one', 'two', 'three']
+  #     partial :bar, :with => ['one', 'two', 'three']
   #
   # The "_bar" partial will be called once for each element of the array
   # specified by :with for a total of three iterations. Each element
   # of the array will be available in the partial via a local variable named
-  # +bar+. Additionally, there will be two extra local variables:
-  # +collection_index+ and +collection_size+. +collection_index+ is the index
-  # of the object currently referenced by +bar+ in the collection passed to
-  # the partial. +collection_size+ is the total size of the collection.
+  # `bar`. Additionally, there will be two extra local variables:
+  # `collection_index` and `collection_size`. `collection_index` is the index
+  # of the object currently referenced by `bar` in the collection passed to
+  # the partial. `collection_size` is the total size of the collection.
   #
   # By default, the object specified by :with will be available through a
   # local variable with the same name as the partial template. However,
-  # this can be changed using the :as option.
+  # this can be changed using the `:as` option:
   #
-  #   partial :bar, :with => "one", :as => :number
+  #     partial :bar, :with => "one", :as => :number
   #
   # In this case, "one" will be available in the partial through the local
-  # variable named +number+.
+  # variable named `number`.
   #
-  # :api: public
+  # @param [#to_s] template The path to the template, relative to the
+  #   current controller or the template root; absolute path will work
+  #   too. If the template contains a "/",  Merb will search for it
+  #   relative to the template root; otherwise,  Merb will search for it
+  #   relative to the current controller.
+  # @param [Hash] opts A hash of options. All hash object names and values
+  #  other than those documented here will be local names and values inside
+  #   the partial.
+  # @option opts [Object, Array] :with
+  #   An object or an array of objects that will be passed into the partial.
+  # @option opts [#to_sym] :as
+  #   The local name of the `:with` Object inside of the partial.
+  # @option opts [Symbol] :format
+  #   The mime format that you want the partial to be in (`:js`, `:html`,
+  #   etc.)
+  #
+  # @api public
   def partial(template, opts={})
 
     # partial :foo becomes "#{controller_name}/_foo"
@@ -334,17 +315,13 @@ module Merb::RenderMixin
 
   # Take the options hash and handle it as appropriate.
   #
-  # ==== Parameters
-  # opts<Hash>:: The options hash that was passed into render.
+  # @param [Hash] opts The options hash that was passed into render.
+  # @option opts [#to_i] :status
+  #   The status of the response will be set to `opts[:status].to_i`
   #
-  # ==== Options
-  # :status<~to_i>::
-  #   The status of the response will be set to opts[:status].to_i
+  # @return [Hash] The options hash that was passed in.
   #
-  # ==== Returns
-  # Hash:: The options hash that was passed in.
-  #
-  # :api: private
+  # @api private
   def _handle_options!(opts)
     self.status = opts.delete(:status).to_i if opts[:status]
     headers["Location"] = opts.delete(:location) if opts[:location]
@@ -355,21 +332,18 @@ module Merb::RenderMixin
   # the layout unless the layout already contains a "." in it.
   #
   # If no layout was passed in, this method will look for one with the same
-  # name as the controller, and finally one in "application.#{content_type}".
+  # name as the controller, and finally one in `"application.#{content_type}"`.
   #
-  # ==== Parameters
-  # layout<~to_s>:: A layout, relative to the layout root. Defaults to nil.
+  # @param [#to_s ] layout A layout, relative to the layout root.
   #
-  # ==== Returns
-  # String:: The method name that corresponds to the found layout.
+  # @return [String] The method name that corresponds to the found layout.
   #
-  # ==== Raises
-  # TemplateNotFound::
-  #   If a layout was specified (either via layout in the class or by passing
-  #   one in to this method), and not found. No error will be raised if no
-  #   layout was specified, and the default layouts were not found.
+  # @raise [TemplateNotFound] If a layout was specified (either via layout
+  #   in the class or by passing one in to this method), and not found. No
+  #   error will be raised if no layout was specified, and the default
+  #   layouts were not found.
   #
-  # :api: private
+  # @api private
   def _get_layout(layout = nil)
     return false if layout == false
     
@@ -395,22 +369,19 @@ module Merb::RenderMixin
   # Iterate over the template roots in reverse order, and return the template
   # and template location of the first match.
   #
-  # ==== Parameters
-  # context<Object>:: The controller action or template (basename or absolute path).
-  # content_type<~to_s>:: The content type (like html or json).
-  # controller<~to_s>:: The name of the controller. Defaults to nil.
-  # locals<Array[Symbol]>:: A list of locals to assign from the args passed into the compiled template.
+  # @param [Object] context The controller action or template (basename
+  #   or absolute path).
+  # @param [#to_s] content_type The content type (like html or json).
+  # @param [#to_s] controller The name of the controller.
+  # @param [String] template The location of the template to use. Defaults
+  #   to whatever matches this context, content_type and controller.
+  # @param [Array<Symbol>] locals A list of locals to assign from the args
+  #   passed into the compiled template.
   #
-  # ==== Options (opts)
-  # :template<String>::
-  #   The location of the template to use. Defaults to whatever matches this
-  #   context, content_type and controller.
+  # @return [Array<Symbol, String>] A pair consisting of the template method
+  #   and location.
   #
-  # ==== Returns
-  # Array[Symbol, String]::
-  #   A pair consisting of the template method and location.
-  #
-  # :api: private
+  # @api private
   def _template_for(context, content_type, controller=nil, template=nil, locals=[])
     tmp = self.class._templates_for[[context, content_type, controller, template, locals]]
     return tmp if tmp
@@ -442,18 +413,17 @@ module Merb::RenderMixin
     end
     ret
   end
-  
+
   # Return the template method for a location, and check to make sure the current controller
   # actually responds to the method.
   #
-  # ==== Parameters
-  # template_location<String>:: The phyical path of the template
-  # locals<Array[Symbol]>:: A list of locals to assign from the args passed into the compiled template.
+  # @param [String] template_location The phyical path of the template
+  # @param [Array<Symbol>] locals A list of locals to assign from the args
+  #   passed into the compiled template.
   #
-  # ==== Returns
-  # String:: The method, if it exists. Otherwise return nil.
+  # @return [String] The method, if it exists. Otherwise return nil.
   #
-  # :api: private
+  # @api private
   def _template_method_for(template_location, locals)
     meth = Merb::Template.template_for(template_location, [], locals)
     meth && self.respond_to?(meth) ? meth : nil
@@ -464,20 +434,18 @@ module Merb::RenderMixin
   # so catch_content or catch_content(:for_layout) can be used inside layouts
   # to get the content rendered by the action template.
   #
-  # ==== Parameters
-  # obj<Object>:: The key in the thrown_content hash. Defaults to :for_layout.
+  # @param [Object] obj The key in the `thrown_content` hash.
   #
-  # :api: public
+  # @api public
   def catch_content(obj = :for_layout)
     @_caught_content[obj] || ''
   end
 
   # Called in templates to test for the existence of previously thrown content.
   #
-  # ==== Parameters
-  # obj<Object>:: The key in the thrown_content hash. Defaults to :for_layout.
+  # @param [Object] obj The key in the `thrown_content` hash.
   #
-  # :api: public
+  # @api public
   def thrown_content?(obj = :for_layout)
     @_caught_content.key?(obj)
   end
@@ -487,19 +455,17 @@ module Merb::RenderMixin
   # captured using the capture() helper provided by the template languages. The
   # two are concatenated together.
   #
-  # ==== Parameters
-  # obj<Object>:: The key in the thrown_content hash.
-  # string<String>:: Textual content. Defaults to nil.
-  # &block:: A block to be evaluated and concatenated to string.
+  # @param [Object] obj The key in the `thrown_content` hash.
+  # @param [String] string Textual content.
+  # @param &block A block to be evaluated and concatenated to string.
   #
-  # ==== Raises
-  # ArgumentError:: Neither string nor block given.
+  # @raise [ArgumentError] Neither string nor block given.
   #
-  # ==== Example
-  #   throw_content(:foo, "Foo")
-  #   catch_content(:foo) #=> "Foo"
+  # @example
+  #     throw_content(:foo, "Foo")
+  #     catch_content(:foo) #=> "Foo"
   #
-  # :api: public
+  # @api public
   def throw_content(obj, string = nil, &block)
     unless string || block_given?
       raise ArgumentError, "You must pass a block or a string into throw_content"
@@ -507,19 +473,19 @@ module Merb::RenderMixin
     @_caught_content[obj] = string.to_s << (block_given? ? capture(&block) : "")
   end
 
-  # Called in templates to append content for later use. Works like throw_content.
+  # Called in templates to append content for later use. Works like {#throw_content}.
   #
   # @param [Object] obj
   #   Key used in the thrown_content hash.
   # @param [String] string
   #   Textual content. Default to nil.
-  # @yield 
+  # @yield
   #   Evaluated with result concatenated to string.
   #
   # @raise [ArgumentError]
   #   Neither string nor block given
   #
-  # :api: public
+  # @api public
   def append_content(obj, string = nil, &block)
     unless string || block_given?
       raise ArgumentError, "You must pass a block or a string into append_content"
@@ -532,10 +498,9 @@ module Merb::RenderMixin
   # before throwing new content. This prevents double rendering of content when
   # multiple templates are rendered after each other.
   #
-  # ==== Parameters
-  # obj<Object>:: The key in the thrown_content hash. Defaults to :for_layout.
+  # @param [Object] obj The key in the `thrown_content` hash.
   #
-  # :api: public
+  # @api public
   def clear_content(obj = :for_layout)
     @_caught_content.delete(obj) unless @_caught_content[obj].nil?
   end

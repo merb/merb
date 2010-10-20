@@ -1,39 +1,40 @@
 # Provides conditional get support in Merb core.
-# Conditional get support is intentionally
-# simple and does not do fancy stuff like making
-# ETag value from Ruby objects for you.
+# Conditional get support is intentionally simple and does not do fancy
+# stuff like making ETag value from Ruby objects for you.
 #
 # The most interesting method for end user is
-# +request_fresh?+ that is used after setting of
-# last modification time or ETag:
+# {#request_fresh? #request_fresh?} that is used after setting of last
+# modification time or ETag:
 #
-# 
-# @example
-#   def show
-#     self.etag = Digest::SHA1.hexdigest(calculate_cache_key(params))
+#     def show
+#       self.etag = Digest::SHA1.hexdigest(calculate_cache_key(params))
 #
-#     if request_fresh?
-#       self.status = 304
-#       return ''
-#     else
-#       @product = Product.get(params[:id])
-#       display @product
+#       if request_fresh?
+#         self.status = 304
+#         return ''
+#       else
+#         @product = Product.get(params[:id])
+#         display @product
+#       end
 #     end
-#   end
+#
+# @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.19
+#   RFC 2616 on the ETag header
 module Merb::ConditionalGetMixin
 
   # Sets ETag response header by calling #to_s on the argument
   #
-  # @param tag [#to_s] value of ETag header
+  # @param [#to_s] tag value of ETag header
   #
-  # @return [String] value of ETag header enclosed in double quotes as required by the RFC
+  # @return [String] Value of ETag header enclosed in double quotes as
+  #   required by the RFC.
   #
   # @api public
   def etag=(tag)
     headers[Merb::Const::ETAG] = %("#{tag}")
   end
 
-  # Value of the ETag header
+  # Value of the ETag header.
   #
   # @return [String] Value of ETag response header if set.
   # @return [nil] If ETag header not set.
@@ -45,8 +46,8 @@ module Merb::ConditionalGetMixin
 
   # Test to see if the request's Etag matches the one supplied locally
   #
-  # @return [true] if ETag response header equals If-None-Match request header
-  # @return [true] if it does not.
+  # @return [Boolean] True if ETag response header equals If-None-Match
+  #   request header, false if it does not.
   #
   # @api public
   def etag_matches?(tag = self.etag)
@@ -55,9 +56,10 @@ module Merb::ConditionalGetMixin
 
   # Sets Last-Modified response header
   #
-  # @param time [Time,DateTime] The last modified time of the resource
+  # @param [Time,DateTime] time The last modified time of the resource
   #
-  # @return [String] The last modified time of the resource in the format required by the RFC
+  # @return [String] The last modified time of the resource in the format
+  #   required by the RFC
   #
   # @api public
   def last_modified=(time)
@@ -79,10 +81,10 @@ module Merb::ConditionalGetMixin
 
   # Test to see if the request's If-Modified-Since is satisfied
   #
-  # @param time [Time] Time to test if the If-Modified-Since header against
+  # @param [Time] time Time to test if the If-Modified-Since header against
   #
-  # @return [true] Last-Modified response header is < than If-Modified-Since request header
-  # @return [false] otherwise
+  # @return [Boolean] True if Last-Modified response header is smaller than
+  #   If-Modified-Since request header, false otherwise.
   #
   # @api public
   def not_modified?(time = self.last_modified)
@@ -97,8 +99,8 @@ module Merb::ConditionalGetMixin
   #
   # A response with no validators is always stale.
   #
-  # @return [true] ETag matches and entity is not modified
-  # @return [false] One or more validators failed, or none were supplied
+  # @return [Boolean] True if ETag matches and entity is not modified,
+  #   false if one or more validators failed, or none were supplied
   #
   # @api public
   def request_fresh?

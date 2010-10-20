@@ -1,59 +1,58 @@
 module Merb::AuthenticationMixin
-  
   # Attempts to authenticate the user via HTTP Basic authentication. Takes a
   # block with the username and password, if the block yields false the
-  # authentication is not accepted and :halt is thrown.
+  # authentication is not accepted and `:halt` is thrown.
   #
-  # If no block is passed, +basic_authentication+, the +request+ and +authenticate+
-  # methods can be chained. These can be used to independently request authentication
+  # If no block is passed, {#basic_authentication}, the {BasicAuthentication#request request}
+  # and {BasicAuthentication#authenticate authenticate} methods can be
+  # chained. These can be used to independently request authentication
   # or confirm it, if more control is desired.
   #
-  # ==== Parameters
-  # realm<~to_s>:: The realm to authenticate against. Defaults to 'Application'.
-  # &authenticator:: A block to check if the authentication is valid.
+  # If you need to request basic authentication inside an action you need
+  # to use the {BasicAuthentication#request! request!} method.
   #
-  # ==== Returns
-  # Merb::AuthenticationMixin::BasicAuthentication
+  # @param [#to_s] realm The realm to authenticate against.
+  # @param &authenticator A block to check if the authentication is valid.
   #
-  # ==== Examples
+  # @return [Merb::AuthenticationMixin::BasicAuthentication]
+  #
+  # @example Basic use:
   #     class Application < Merb::Controller
-  #     
+  #
   #       before :authenticate
-  #     
+  #
   #       protected
-  #     
+  #
   #       def authenticate
   #         basic_authentication("My App") do |username, password|
   #           password == "secret"
   #         end
   #       end
-  #     
+  #
   #     end
   #
+  # @example Authentication against a User model:
   #     class Application < Merb::Controller
-  #     
+  #
   #       before :authenticate
-  #     
+  #
   #       def authenticate
   #         user = basic_authentication.authenticate do |username, password|
   #           User.authenticate(username, password)
   #         end
-  #     
+  #
   #         if user
   #           @current_user = user
   #         else
   #           basic_authentication.request
   #         end
   #       end
-  #     
+  #
   #     end
   #
-  # If you need to request basic authentication inside an action you need to use the request! method.
-  #
-  # ==== Example
-  #
+  # @example Content-Type specific authentication
   #    class Sessions < Application
-  #  
+  #
   #      def new
   #        case content_type
   #        when :html
@@ -71,11 +70,11 @@ module Merb::AuthenticationMixin
   #         end
   #        end
   #      end
-  # 
-  #    end 
+  #
+  #    end
   #
   #
-  # :api: public
+  # @api public
   def basic_authentication(realm = "Application", &authenticator)
     @_basic_authentication ||= BasicAuthentication.new(self, realm, &authenticator)
   end
@@ -84,7 +83,7 @@ module Merb::AuthenticationMixin
     # So we can have access to the status codes
     include Merb::ControllerExceptions
 
-    # :api: private
+    # @api private
     def initialize(controller, realm = "Application", &authenticator)
       @controller = controller
       @realm = realm
@@ -95,15 +94,14 @@ module Merb::AuthenticationMixin
     # Determines whether or not the user is authenticated using the criteria
     # in the provided authenticator block.
     #
-    # ==== Parameters
-    # &authenticator:: A block that decides whether the provided username and password
-    #   are valid.
+    # @param &authenticator A block that decides whether the provided
+    #   username and password are valid.
     #
-    # ==== Returns
-    # Object:: False if basic auth is not provided, otherwise the return value of the authenticator block.
-    # 
+    # @return [Object] False if basic auth is not provided, otherwise the
+    #   return value of the authenticator block.
+    #
     # @overridable
-    # :api: public
+    # @api public
     def authenticate(&authenticator)
       if @auth.provided? and @auth.basic?
         authenticator.call(*@auth.credentials)
@@ -112,12 +110,13 @@ module Merb::AuthenticationMixin
       end
     end
 
-    # Request basic authentication and halt the filter chain. This is for use in a before filter.
+    # Request basic authentication and halt the filter chain.
     #
-    # ==== Throws
-    # :halt with an "HTTP Basic: Access denied." message with no layout, and sets the status to Unauthorized.
+    # This is for use in a before filter. Throws `:halt` to stop the filter
+    # chain and force authentication with an "HTTP Basic: Access denied."
+    # message, an Unauthorized status, and without a layout.
     #
-    # :api: public
+    # @api public
     def request
       request!
       throw :halt, @controller.render("HTTP Basic: Access denied.\n", :status => Unauthorized.status, :layout => false)
@@ -125,43 +124,39 @@ module Merb::AuthenticationMixin
     
     # Sets headers to request basic auth.
     #
-    # ==== Returns
-    # String:: Returns the empty string to provide a response body.
+    # @return [String] Returns the empty string to provide a response body.
     #
-    # :api: public
+    # @api public
     def request!
       @controller.status = Unauthorized.status
       @controller.headers['WWW-Authenticate'] = 'Basic realm="%s"' % @realm
       ""
     end
     
-    # ==== Returns
-    # Boolean:: Whether there has been any basic authentication credentials provided
+    # @return [Boolean] Whether there has been any basic authentication credentials provided
     #
-    # :api: public
+    # @api public
     def provided?
       @auth.provided?
     end
     
-    # ==== Returns
-    # String:: The username provided in the request.
+    # @return [String] The username provided in the request.
     #
-    # :api: public
+    # @api public
     def username
       provided? ? @auth.credentials.first : nil
     end
     
-    # ==== Returns
-    # String:: The password provided in the request.
+    # @return [String] The password provided in the request.
     #
-    # :api: public
+    # @api public
     def password
       provided? ? @auth.credentials.last : nil
     end
     
     protected
     
-    # :api: private
+    # @api private
     def authenticate_or_request(&authenticator)
       authenticate(&authenticator) || request
     end

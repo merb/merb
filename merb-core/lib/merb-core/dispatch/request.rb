@@ -4,9 +4,9 @@ module Merb
 
   class Request
     
-    # :api: private
+    # @api private
     attr_accessor :env, :route
-    # :api: private
+    # @api private
     attr_reader :route_params
 
     # by setting these to false, auto-parsing is disabled; this way you can
@@ -28,11 +28,12 @@ module Merb
 
     # Initialize the request object.
     #
-    # ==== Parameters
+    # @todo Fix docs.
+    # #### Parameters
     # http_request<~params:~[], ~body:IO>::
     #   An object like an HTTP Request.
     #
-    # :api: private
+    # @api private
     def initialize(rack_env)      
       @env  = rack_env
       @body = rack_env[Merb::Const::RACK_INPUT]
@@ -42,14 +43,12 @@ module Merb
     # Memoizes the new request object into env["merb.request"] so we
     # can memoize things into ivars in the request
     #
-    # ==== Parameters
-    # env<Hash>:: A rack environment
-    # *args<Array>:: Other arguments passed to the superclass
+    # @param [Hash] env A rack environment
+    # @param [Array] *args Other arguments passed to the superclass
     #
-    # ==== Returns
-    # Merb::Request:: The new Merb::Request
+    # @return [Merb::Request] The new Merb::Request
     #
-    # :api: public
+    # @api public
     def self.new(env, *args)
       if self == Merb::Request
         env["merb.request"] ||= super
@@ -61,11 +60,10 @@ module Merb
     # Returns the controller object for initialization and dispatching the
     # request.
     #
-    # ==== Returns
-    # Class:: The controller class matching the routed request,
+    # @return [Class] The controller class matching the routed request,
     #   e.g. Posts.
     #
-    # :api: private
+    # @api private
     def controller
       unless params[:controller]
         raise ControllerExceptions::NotFound,
@@ -92,16 +90,18 @@ module Merb
 
     METHODS = %w{get post put delete head options}
 
-    # ==== Returns
-    # Symbol:: The name of the request method, e.g. :get.
+    # Get the request method.
     #
-    # ==== Notes
+    # @return [Symbol] The name of the request method, e.g. `:get`.
+    #
+    # #### Notes
     # If the method is post, then the blocks specified in
-    # http_method_overrides will be checked for the masquerading method.
-    # The block will get the controller yielded to it.  The first matching workaround wins.
-    # To disable this behavior, set http_method_overrides = []
+    # `http_method_overrides` will be checked for the masquerading method.
+    # The block will get the controller yielded to it.  The first matching
+    # workaround wins. To disable this behavior, set
+    # `http_method_overrides = []`
     #
-    # :api: public
+    # @api public
     def method
       @method ||= begin
         request_method = @env[Merb::Const::REQUEST_METHOD].downcase.to_sym
@@ -127,23 +127,21 @@ module Merb
       class_eval "def #{m}?() method == :#{m} end"
     end
 
-    # ==== Notes
     # Find route using requested URI and merges route
-    # parameters (:action, :controller and named segments)
+    # parameters (`:action, :controller` and named segments)
     # into request params hash.
     #
-    # :api: private
+    # @api private
     def find_route!
       @route, @route_params = Merb::Router.route_for(self)
       params.merge! @route_params if @route_params.is_a?(Hash)
     end
 
-    # ==== Notes
-    # Processes the return value of a deferred router block
+    # Process the return value of a deferred router block
     # and returns the current route params for the current
     # request evaluation
     #
-    # :api: private
+    # @api private
     def _process_block_return(retval)
       # If the return value is an array, then it is a redirect
       # so we must set the request as a redirect and extract
@@ -156,27 +154,26 @@ module Merb
     # Sets the request as matched. This will abort evaluating any
     # further deferred procs.
     #
-    # :api: private
+    # @api private
     def matched!
       @matched = true
     end
 
     # Checks whether or not the request has been matched to a route.
     #
-    # :api: private
+    # @api private
     def matched?
       @matched
     end
 
-    # ==== Returns
-    # (Array, Hash):: the route params for the matched route.
+    # @return [Array, Hash] The route params for the matched route.
     #
-    # ==== Notes
+    # #### Notes
     # If the response is an Array then it is considered a direct Rack response
     # to be sent back as a response. Otherwise, the route_params is a Hash with
     # routing data (controller, action, et al).
     #
-    # :api: private
+    # @api private
     def rack_response
       @route_params
     end
@@ -184,25 +181,25 @@ module Merb
     # If @route_params is an Array, then it will be the rack response.
     # In this case, the request is considered handled.
     #
-    # ==== Returns
-    # Boolean:: true if @route_params is an Array, false otherwise.
+    # @return [Boolean] true if @route_params is an Array, false otherwise.
     #
-    # :api: private
+    # @api private
     def handled?
       @route_params.is_a?(Array)
     end
 
-    # == Params
+    private
+
+    # Process parameters from query string.
     #
     # Handles processing params from raw data and merging them together to get
     # the final request params.
-
-    private
-
-    # ==== Returns
-    # Hash:: Parameters passed from the URL like ?blah=hello.
     #
-    # :api: private
+    # @todo Docs: not sure if the text originally belonged to this method, but it makes some sense.
+    #
+    # @return [Hash] Parameters passed from the URL like `?blah=hello`.
+    #
+    # @api private
     def query_params
       @query_params ||= Merb::Parse.query(query_string || '')
     end
@@ -210,10 +207,9 @@ module Merb
     # Parameters passed in the body of the request. Ajax calls from
     # prototype.js and other libraries pass content this way.
     #
-    # ==== Returns
-    # Hash:: The parameters passed in the body.
+    # @return [Hash] The parameters passed in the body.
     #
-    # :api: private
+    # @api private
     def body_params
       @body_params ||= begin
         if content_type && content_type.match(Merb::Const::FORM_URL_ENCODED_REGEXP) # or content_type.nil?
@@ -222,12 +218,10 @@ module Merb
       end
     end
 
-    # ==== Returns
-    # Mash::
-    #   The parameters gathered from the query string and the request body,
-    #   with parameters in the body taking precedence.
+    # @return [Mash] The parameters gathered from the query string and
+    #   the request body, with parameters in the body taking precedence.
     #
-    # :api: private
+    # @api private
     def body_and_query_params
       # ^-- FIXME a better name for this method
       @body_and_query_params ||= begin
@@ -237,14 +231,12 @@ module Merb
       end
     end
 
-    # ==== Raises
-    # ControllerExceptions::MultiPartParseError::
-    #   Unable to parse the multipart form data.
+    # @raise [ControllerExceptions, MultiPartParseError] Unable to parse
+    #   the multipart form data.
     #
-    # ==== Returns
-    # Hash:: The parsed multipart parameters.
+    # @return [Hash] The parsed multipart parameters.
     #
-    # :api: private
+    # @api private
     def multipart_params
       @multipart_params ||=
         begin
@@ -261,16 +253,15 @@ module Merb
         end
     end
 
-    # ==== Returns
-    # Hash:: Parameters from body if this is a JSON request.
+    # @return [Hash] Parameters from body if this is a JSON request.
     #
-    # ==== Notes
+    # #### Notes
     # If the JSON object parses as a Hash, it will be merged with the
     # parameters hash.  If it parses to anything else (such as an Array, or
     # if it inflates to an Object) it will be accessible via the inflated_object
     # parameter.
     #
-    # :api: private
+    # @api private
     def json_params
       @json_params ||= begin
         if Merb::Const::JSON_MIME_TYPE_REGEXP.match(content_type)
@@ -285,10 +276,9 @@ module Merb
       end
     end
 
-    # ==== Returns
-    # Hash:: Parameters from body if this is an XML request.
+    # @return [Hash] Parameters from body if this is an XML request.
     #
-    # :api: private
+    # @api private
     def xml_params
       @xml_params ||= begin
         if Merb::Const::XML_MIME_TYPE_REGEXP.match(content_type)
@@ -299,14 +289,13 @@ module Merb
 
     public
 
-    # ==== Returns
-    # Mash:: All request parameters.
+    # @return [Mash] All request parameters.
     #
-    # ==== Notes
+    # #### Notes
     # The order of precedence for the params is XML, JSON, multipart, body and
     # request string.
     #
-    # :api: public
+    # @api public
     def params
       @params ||= begin
         h = body_and_query_params.merge(route_params)
@@ -317,10 +306,9 @@ module Merb
       end
     end
 
-    # ==== Returns
-    # String:: Returns the redirect message Base64 unencoded.
+    # @return [String] The redirect message Base64 unencoded.
     #
-    # :api: public
+    # @api public
     def message
       return {} unless params[:_message]
       begin
@@ -330,37 +318,33 @@ module Merb
       end
     end
 
-    # ==== Notes
     # Resets the params to a nil value.
     #
-    # :api: private
+    # @api private
     def reset_params!
       @params = nil
     end
 
-    # ==== Returns
-    # String:: The raw post.
+    # @return [String] The raw post.
     #
-    # :api: private
+    # @api private
     def raw_post
       @body.rewind if @body.respond_to?(:rewind)
       @raw_post ||= @body.read
     end
 
-    # ==== Returns
-    # Boolean:: If the request is an XML HTTP request.
+    # @return [Boolean] If the request is an XML HTTP request.
     #
-    # :api: public
+    # @api public
     def xml_http_request?
       not Merb::Const::XML_HTTP_REQUEST_REGEXP.match(@env[Merb::Const::HTTP_X_REQUESTED_WITH]).nil?
     end
     alias xhr? :xml_http_request?
     alias ajax? :xml_http_request?
 
-    # ==== Returns
-    # String:: The remote IP address.
+    # @return [String] The remote IP address.
     #
-    # :api: public
+    # @api public
     def remote_ip
       return @env[Merb::Const::HTTP_CLIENT_IP] if @env.include?(Merb::Const::HTTP_CLIENT_IP)
 
@@ -375,182 +359,158 @@ module Merb
       return @env[Merb::Const::REMOTE_ADDR]
     end
 
-    # ==== Returns
-    # String::
-    #   The protocol, i.e. either "https" or "http" depending on the
-    #   HTTPS header.
+    # @return [String] The protocol, i.e. either "https" or "http" depending
+    #   on the HTTPS header.
     #
-    # :api: public
+    # @api public
     def protocol
       ssl? ? Merb::Const::HTTPS : Merb::Const::HTTP
     end
 
-    # ==== Returns
-    # Boolean::: True if the request is an SSL request.
+    # @return [Boolean] True if the request is an SSL request.
     #
-    # :api: public
+    # @api public
     def ssl?
       @env[Merb::Const::UPCASE_HTTPS] == 'on' || @env[Merb::Const::HTTP_X_FORWARDED_PROTO] == Merb::Const::HTTPS
     end
 
-    # ==== Returns
-    # String:: The HTTP referer.
+    # @return [String] The HTTP referer.
     #
-    # :api: public
+    # @api public
     def referer
       @env[Merb::Const::HTTP_REFERER]
     end
 
-    # ==== Returns
-    # String:: The full URI, including protocol and host
+    # @return [String] The full URI, including protocol and host
     #
-    # :api: public
+    # @api public
     def full_uri
       protocol + "://" + host + uri
     end
 
-    # ==== Returns
-    # String:: The request URI.
+    # @return [String] The request URI.
     #
-    # :api: public
+    # @api public
     def uri
       @env[Merb::Const::REQUEST_PATH] || @env[Merb::Const::REQUEST_URI] || path_info
     end
 
-    # ==== Returns
-    # String:: The HTTP user agent.
+    # @return [String] The HTTP user agent.
     #
-    # :api: public
+    # @api public
     def user_agent
       @env[Merb::Const::HTTP_USER_AGENT]
     end
 
-    # ==== Returns
-    # String:: The server name.
+    # @return [String] The server name.
     #
-    # :api: public
+    # @api public
     def server_name
       @env[Merb::Const::SERVER_NAME]
     end
 
-    # ==== Returns
-    # String:: The accepted encodings.
+    # @return [String] The accepted encodings.
     #
-    # :api: private
+    # @api private
     def accept_encoding
       @env[Merb::Const::HTTP_ACCEPT_ENCODING]
     end
 
-    # ==== Returns
-    # String:: The script name.
+    # @return [String] The script name.
     #
-    # :api: public
+    # @api public
     def script_name
       @env[Merb::Const::SCRIPT_NAME]
     end
 
-    # ==== Returns
-    # String:: HTTP cache control.
+    # @return [String] HTTP cache control.
     #
-    # :api: public
+    # @api public
     def cache_control
       @env[Merb::Const::HTTP_CACHE_CONTROL]
     end
 
-    # ==== Returns
-    # String:: The accepted language.
+    # @return [String] The accepted language.
     #
-    # :api: public
+    # @api public
     def accept_language
       @env[Merb::Const::HTTP_ACCEPT_LANGUAGE]
     end
 
-    # ==== Returns
-    # String:: The server software.
+    # @return [String] The server software.
     #
-    # :api: public
+    # @api public
     def server_software
       @env[Merb::Const::SERVER_SOFTWARE]
     end
 
-    # ==== Returns
-    # String:: Value of HTTP_KEEP_ALIVE.
+    # @return [String] Value of HTTP_KEEP_ALIVE.
     #
-    # :api: public
+    # @api public
     def keep_alive
       @env[Merb::Const::HTTP_KEEP_ALIVE]
     end
 
-    # ==== Returns
-    # String:: The accepted character sets.
+    # @return [String] The accepted character sets.
     #
-    # :api: public
+    # @api public
     def accept_charset
       @env[Merb::Const::HTTP_ACCEPT_CHARSET]
     end
 
-    # ==== Returns
-    # String:: The HTTP version
+    # @return [String] The HTTP version
     #
-    # :api: private
+    # @api private
     def version
       @env[Merb::Const::HTTP_VERSION]
     end
 
-    # ==== Returns
-    # String:: The gateway.
+    # @return [String] The gateway.
     #
-    # :api: public
+    # @api public
     def gateway
       @env[Merb::Const::GATEWAY_INTERFACE]
     end
 
-    # ==== Returns
-    # String:: The accepted response types. Defaults to "*/*".
+    # @return [String] The accepted response types. Defaults to `"*/*"`.
     #
-    # :api: private
+    # @api private
     def accept
       @env[Merb::Const::HTTP_ACCEPT].blank? ? "*/*" : @env[Merb::Const::HTTP_ACCEPT]
     end
 
-    # ==== Returns
-    # String:: The HTTP connection.
+    # @return [String] The HTTP connection.
     #
-    # :api: private
+    # @api private
     def connection
       @env[Merb::Const::HTTP_CONNECTION]
     end
 
-    # ==== Returns
-    # String:: The query string.
+    # @return [String] The query string.
     #
-    # :api: private
+    # @api private
     def query_string
       @env[Merb::Const::QUERY_STRING]
     end
 
-    # ==== Returns
-    # String:: The request content type.
+    # @return [String] The request content type.
     #
-    # :api: private
+    # @api private
     def content_type
       @env[Merb::Const::UPCASE_CONTENT_TYPE]
     end
 
-    # ==== Returns
-    # Fixnum:: The request content length.
+    # @return [Fixnum] The request content length.
     #
-    # :api: public
+    # @api public
     def content_length
       @content_length ||= @env[Merb::Const::CONTENT_LENGTH].to_i
     end
 
-    # ==== Returns
-    # String::
-    #   The URI without the query string. Strips trailing "/" and reduces
-    #   duplicate "/" to a single "/".
+    # @return [String] The URI without the query string. Strips trailing
+    #   "/" and reduces duplicate "/" to a single "/".
     #
-    # :api: public
+    # @api public
     def path
       # Merb::Const::SLASH is /
       # Merb::Const::QUESTION_MARK is ?
@@ -559,70 +519,59 @@ module Merb
       path
     end
 
-    # ==== Returns
-    # String:: The path info.
+    # @return [String] The path info.
     #
-    # :api: public
+    # @api public
     def path_info
       @path_info ||= Merb::Parse.unescape(@env[Merb::Const::PATH_INFO])
     end
 
-    # ==== Returns
-    # Fixnum:: The server port.
+    # @return [Fixnum] The server port.
     #
-    # :api: public
+    # @api public
     def port
       @env[Merb::Const::SERVER_PORT].to_i
     end
 
-    # ==== Returns
-    # String:: The full hostname including the port.
+    # @return [String] The full hostname including the port.
     #
-    # :api: public
+    # @api public
     def host
       @env[Merb::Const::HTTP_X_FORWARDED_HOST] || @env[Merb::Const::HTTP_HOST] ||
         @env[Merb::Const::SERVER_NAME]
     end
 
-    # ==== Parameters
-    # tld_length<Fixnum>::
-    #   Number of domains levels to inlclude in the top level domain. Defaults
-    #   to 1.
+    # @param [Fixnum] tld_length Number of domains levels to inlclude in
+    #   the top level domain.
     #
-    # ==== Returns
-    # Array:: All the subdomain parts of the host.
+    # @return [Array] All the subdomain parts of the host.
     #
-    # :api: public
+    # @api public
     def subdomains(tld_length = 1)
       parts = host.split(Merb::Const::DOT)
       parts[0..-(tld_length+2)]
     end
 
-    # ==== Parameters
-    # tld_length<Fixnum>::
-    #   Number of domains levels to inlclude in the top level domain. Defaults
-    #   to 1.
+    # @param [Fixnum] tld_length Number of domains levels to inlclude in
+    #   the top level domain.
     #
-    # ==== Returns
-    # String:: The full domain name without the port number.
+    # @return [String] The full domain name without the port number.
     #
-    # :api: public
+    # @api public
     def domain(tld_length = 1)
       host.split(Merb::Const::DOT).last(1 + tld_length).join(Merb::Const::DOT).sub(/:\d+$/,'')
     end
 
-    # ==== Returns
-    # Value of If-None-Match request header.
+    # @return [String] Value of If-None-Match request header.
     #
-    # :api: private
+    # @api private
     def if_none_match
       @env[Merb::Const::HTTP_IF_NONE_MATCH]
     end
 
-    # ==== Returns
-    # Value of If-Modified-Since request header.
+    # @return [Time, nil] Value of If-Modified-Since request header.
     #
-    # :api: private
+    # @api private
     def if_modified_since
       if time = @env[Merb::Const::HTTP_IF_MODIFIED_SINCE]
         Time.rfc2822(time)

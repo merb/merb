@@ -3,14 +3,12 @@ module Merb
   module Plugins
 
     # Returns the configuration settings hash for plugins. This is prepopulated from
-    # Merb.root / "config/plugins.yml" if it is present.
+    # Merb.root, or "config/plugins.yml" if it is present.
     #
-    # ==== Returns
-    # Hash::
-    #   The configuration loaded from Merb.root / "config/plugins.yml" or, if
-    #   the load fails, an empty hash whose default value is another Hash.
+    # @return [Hash] The configuration loaded from Merb.root, "config/plugins.yml",
+    #   or, if the load fails, an empty hash whose default value is another Hash.
     #
-    # :api: plugin
+    # @api plugin
     def self.config
       @config ||= begin
         # this is so you can do Merb.plugins.config[:helpers][:awesome] = "bar"
@@ -28,51 +26,51 @@ module Merb
       end
     end
 
-    # ==== Returns
-    # Array(String):: All Rakefile load paths Merb uses for plugins.
+    # Get all Rakefile load paths Merb uses for plugins.
     #
-    # :api: plugin
+    # @return [Array(String)] All Rakefile load paths Merb uses for plugins.
+    #
+    # @api plugin
     def self.rakefiles
       Merb.rakefiles
     end
-    
-    # ==== Returns
-    # Array(String):: All Generator load paths Merb uses for plugins.
+
+    # Get all Generator load paths Merb uses for plugins.
     #
-    # :api: plugin
+    # @return [Array(String)] All Generator load paths Merb uses for plugins.
+    #
+    # @api plugin
     def self.generators
       Merb.generators
     end
 
-    # ==== Parameters
-    # *rakefiles:: Rakefiles to add to the list of plugin Rakefiles.
-    #
-    # ==== Notes
+    # Add Rakefile load paths.
     #
     # This is a recommended way to register your plugin's Raketasks
     # in Merb.
     #
-    # ==== Examples
-    # From merb_sequel plugin:
+    # @param [String, ...] rakefiles Rakefiles to add to the list of plugin
+    #   Rakefiles.
     #
-    # if defined(Merb::Plugins)
-    #   Merb::Plugins.add_rakefiles "merb_sequel" / "merbtasks"
-    # end
+    # @example From merb_sequel plugin:
+    #     if defined(Merb::Plugins)
+    #       Merb::Plugins.add_rakefiles "merb_sequel" / "merbtasks"
+    #     end
     #
-    # :api: plugin
+    # @api plugin
     def self.add_rakefiles(*rakefiles)
       Merb.add_rakefiles(*rakefiles)
     end
-    
-    # ==== Parameters
-    # *generators:: Generator paths to add to the list of plugin generators.
-    #
-    # ==== Notes
+
+    # Add generator load paths.
     #
     # This is the recommended way to register your plugin's generators
     # in Merb.
     #
-    # :api: plugin
+    # @param [String, ...] generators Generator paths to add to the list of
+    #   plugin generators.
+    #
+    # @api plugin
     def self.add_generators(*generators)
       Merb.add_generators(*generators)
     end

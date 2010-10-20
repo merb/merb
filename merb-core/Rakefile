@@ -31,6 +31,20 @@ namespace :doc do
     rdoc.options << "--line-numbers"
   end
 
+  begin
+    require 'yard'
+
+    YARD::Rake::YardocTask.new do |t|
+      t.files   = ['lib/**/*.rb']
+      t.options = [
+        '--output-dir', 'doc/yard',
+        '--tag', 'overridable:Overridable',
+        '--markup', 'markdown',
+      ]
+    end
+  rescue
+  end
+
   desc "run webgen"
   task :webgen do
     sh %{cd doc/site; webgen}

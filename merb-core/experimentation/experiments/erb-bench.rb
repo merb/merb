@@ -12,7 +12,7 @@ class Erubis::ArrayEruby < Erubis::BlockAwareEruby
     src << "@_engine = 'erb'; "
   end
 
-  # :api: private
+  # @api private
   def add_postamble(src)
     src << "\n" unless src[-1] == ?\n      
     src << "_ret = @_erb_buf; @_erb_buf = _old_buf; _ret.join;\n"

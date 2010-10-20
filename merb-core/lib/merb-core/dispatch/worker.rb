@@ -1,14 +1,14 @@
 module Merb
   class Worker
     
-    # :api: private
+    # @api private
     attr_accessor :thread
     
     class << self
       # ==== Returns
       # Merb::Worker:: instance of a worker.
       # 
-      # :api: private
+      # @api private
       def start
         @worker ||= new
         Merb.at_exit do 
@@ -25,7 +25,7 @@ module Merb
       # ==== Returns
       # Whether the Merb::Worker instance is already started.
       #
-      # :api: private
+      # @api private
       def started?
         !@worker.nil?
       end
@@ -33,7 +33,7 @@ module Merb
       # ==== Returns
       # Whether the Merb::Worker instance thread is alive
       #
-      # :api: private
+      # @api private
       def alive?
         started? and @worker.thread.alive?
       end
@@ -43,7 +43,7 @@ module Merb
       # ==== Returns
       # Merb::Worker:: instance of a worker.
       #
-      # :api: private
+      # @api private
       def restart
         # if we have a worker or thread, kill it.
         if started?
@@ -56,7 +56,7 @@ module Merb
     
     # Creates a new worker thread that loops over the work queue.
     # 
-    # :api: private
+    # @api private
     def initialize
       @thread = Thread.new do
         loop do
@@ -68,7 +68,7 @@ module Merb
     
     # Processes tasks in the Merb::Dispatcher.work_queue.
     # 
-    # :api: private
+    # @api private
     def process_queue
       begin
         while blk = Merb::Dispatcher.work_queue.pop

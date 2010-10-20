@@ -1,0 +1,114 @@
+# Documentation
+
+Merb switches YARD for generated documentation. Inside comments, use
+Markdown syntax.
+
+The main reason behind the switch from RDoc/SimpleMarktup is that the
+plain RDoc does not allow semantic documentation, but relies on manual
+formatting.
+
+## Formatting Guidelines
+
+Set *inline code* in backticks (\`code\`).
+
+If you need *subheadings* inside comment blocks, use 4th level headings
+indicated by four hash marks (`####`).
+
+Markdown is currently lacking *definition lists.* As a workaround, you can
+use this construct:
+
+    * **Item name:** Item description
+      even over several lines.
+
+## Details
+Multiple types of elements can carry documentation:
+
+* Modules
+* Classes
+  * Attributes
+  * Methods
+
+### Modules
+
+Module documentation should show the "big picture". Give examples and link
+to relevant details.
+
+### Classes
+
+Class documentation should be on par with module documentation, again
+giving broad examples and references.
+
+### Attributes and Methods
+
+Method documentation should at least provide a complete rundown of
+parameter semantics and the return type. Additionally, at least a short
+introductory sentence should be provided.
+
+For type specification, use the syntax shown in the YARD documentation:
+
+* A list of types, e.g.
+      @param [String, Hash] ...
+* Container types with specific contents
+      @param [Array<String>]
+* Types responding to certain methods
+      @param [#to_s]
+* Combinations
+      @param [Fixnum, #to_sym, nil]
+
+Additionally, methods should carry an @api tag to describe visibility and
+stability. There are three "layers":
+
+* **@api public:** Public APIs are guaranteed to be stable at least until
+  the next major release.
+* **@api plugin:** Those interfaces are "semi-stable". They are meant to
+  expose internals that might be interesting to plugin developers who need
+  to extend Merb, but not for everyday application development. In short,
+  they are unlikely to change, but keep track of where you are using them.
+* **@api private:** Volatile internal interfaces. Do not use them.
+
+An example for a well-documented method:
+
+    # Render the specified item, with the specified options.
+    #
+    # #### Alternatives
+    # If you pass a Hash as the first parameter, it will be moved to
+    # opts and "thing" will be the current action
+    #
+    # @todo Docs: Use the @overload tag to describe the alternative
+    #   syntax?
+    #
+    # @param [String, Symbol, nil] thing The thing to render. This will
+    #   default to the current action.
+    # @param [Hash] opts An options hash.
+    # @option opts [Symbol] :format
+    #   A registered mime-type format
+    # @option opts [String] :template
+    #   The path to the template relative to the template root
+    # @option opts [#to_i] :status
+    #   The status to send to the client. Typically, this would
+    #   be an integer (200), or a Merb status code (Accepted)
+    # @option opts [#to_s] :layout
+    #   A layout to use instead of the default. This should be
+    #   relative to the layout root. By default, the layout will
+    #   be either the controller_name or application. If you
+    #   want to use an alternative content-type than the one
+    #   that the base template was rendered as, you will need
+    #   to do `:layout => "foo.#{content_type}"` (e.g. `foo.json`)
+    #
+    # @return [String] The rendered template, including layout, if
+    #   appropriate.
+    #
+    # @raise [TemplateNotFound] There is no template for the specified
+    #   location.
+    #
+    # @example Redirect to index if instance is not found:
+    #     def show(:id)
+    #        # assume the model instance is supposed to be in @pet
+    #        return render(:index, {:status => 200}) if @pet.nil?
+    #        render
+    #     end
+    #
+    # @api public
+    def render(thing = nil, opts = {})
+      # <snip>
+    end

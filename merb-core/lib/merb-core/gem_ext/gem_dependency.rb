@@ -3,7 +3,7 @@ begin
 
   module Gem
     class Dependency
-      # :api: private
+      # @api private
       attr_accessor :require_block, :require_as, :original_caller, :source
     end
   end

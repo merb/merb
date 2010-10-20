@@ -1,15 +1,15 @@
 Merb::BootLoader.after_app_loads do
   module Merb
     class Dispatcher
-      # :api: private
+      # @api private
       module DefaultExceptionHelper
       
-        # :api: private
+        # @api private
         def humanize_exception(e)
           e.class.name.split("::").last.gsub(/([a-z])([A-Z])/, '\1 \2')
         end
 
-        # :api: private
+        # @api private
         def error_codes(exception)
           if @show_details
             message, message_details = exception.message.split("\n", 2)
@@ -19,7 +19,7 @@ Merb::BootLoader.after_app_loads do
           end
         end
 
-        # :api: private
+        # @api private
         def frame_details(line)
           if (match = line.match(/^(.+):(\d+):(.+)$/))
             filename = match[1]
@@ -44,7 +44,7 @@ Merb::BootLoader.after_app_loads do
           end
         end
 
-        # :api: private
+        # @api private
         def listing(key, value, arr)
           ret   =  []
           ret   << "<table class=\"listing\" style=\"display: none\">"
@@ -68,12 +68,12 @@ Merb::BootLoader.after_app_loads do
           filename.match(/jar\!/)
         end
       
-        # :api: private
+        # @api private
         def textmate_url(filename, line)
           "<a href='txmt://open?url=file://#{filename}&amp;line=#{line}'>#{line}</a>"
         end
       
-        # :api: private
+        # @api private
         def render_source(filename, line)
           line = line.to_i
           ret   =  []
@@ -99,16 +99,16 @@ Merb::BootLoader.after_app_loads do
         end
       end
     
-      # :api: private
+      # @api private
       class DefaultException < Merb::Controller
         self._template_root = File.dirname(__FILE__) / "views"
       
-        # :api: private
+        # @api private
         def _template_location(context, type = nil, controller = controller_name)
           "#{context}.#{type}"
         end
       
-        # :api: private
+        # @api private
         def index
           @exceptions = request.exceptions
           @show_details = Merb::Config[:exception_details]

@@ -16,3 +16,5 @@ TAGS
 *.tmproj
 .#*
 doc/*
+.yardoc
+.yardoc/*
