@@ -20,7 +20,7 @@
 # name that method will be called and if it is a proc it will be called
 # with an argument of self where self is the current controller object.
 # When you use a proc as a filter it needs to take one parameter.
-# 
+#
 # `#after` is identical, but the filters are run after the action is invoked.
 #
 # #### Examples
@@ -35,14 +35,14 @@
 # `:exclude` will run for every action that is not listed.
 #
 # Merb's before filter chain is very flexible. To halt the filter chain you
-# use <code>throw :halt</code>. If <code>throw</code> is called with only one 
-# argument of <code>:halt</code> the return value of the method 
-# <code>filters_halted</code> will be what is rendered to the view. You can 
-# override <code>filters_halted</code> in your own controllers to control what 
-# it outputs. But the <code>throw</code> construct is much more powerful than 
+# use <code>throw :halt</code>. If <code>throw</code> is called with only one
+# argument of <code>:halt</code> the return value of the method
+# <code>filters_halted</code> will be what is rendered to the view. You can
+# override <code>filters_halted</code> in your own controllers to control what
+# it outputs. But the <code>throw</code> construct is much more powerful than
 # just that.
 #
-# <code>throw :halt</code> can also take a second argument. Here is what that 
+# <code>throw :halt</code> can also take a second argument. Here is what that
 # second argument can be and the behavior each type can have:
 #
 # * `String`:
@@ -72,10 +72,10 @@
 #
 # **`:exclude<Symbol, Array[Symbol]>`:**
 #   A list of actions that this filter should *not* apply to
-# 
+#
 # **`:if<Symbol, Proc>`:**
 #   Only apply the filter if the method named after the symbol or calling the proc evaluates to true
-# 
+#
 # **`:unless<Symbol, Proc>`:**
 #   Only apply the filter if the method named after the symbol or calling the proc evaluates to false
 #
@@ -94,12 +94,13 @@
 
 module Merb
   module InlineTemplates; end
-  
+
   class AbstractController
     include Merb::RenderMixin
     include Merb::InlineTemplates
 
-    class_attribute :_layout, :_template_root, :template_roots
+    class_inheritable_accessor :_template_root
+    class_attribute :_layout, :template_roots
     class_attribute :_before_filters, :_after_filters
     class_attribute :_before_dispatch_callbacks, :_after_dispatch_callbacks
 
@@ -108,7 +109,7 @@ module Merb
     # @api plugin
     attr_accessor :body, :action_name, :_benchmarks
     # @api private
-    attr_accessor :_thrown_content  
+    attr_accessor :_thrown_content
 
     # Stub so content-type support in RenderMixin doesn't throw errors
     # @api private
@@ -139,7 +140,7 @@ module Merb
     # for your app.
     #
     # @param [#to_s] context The controller context (action or template name).
-    # @param [#to_s] type The content type. Could be nil. 
+    # @param [#to_s] type The content type. Could be nil.
     # @param [#to_s] controller The name of the controller. Defaults to being
     #   called with the controller_name.  Set t
     # @todo "Set t" what?
@@ -187,7 +188,7 @@ module Merb
     #
     # @api public
     def self._template_root=(root)
-      @_template_root = root
+      write_inheritable_attribute(:_template_root, root)
       _reset_template_roots
     end
 
@@ -283,7 +284,7 @@ module Merb
 
         result
       end
-  
+
       @body = case caught
       when :filter_chain_completed  then @body
       when String                   then caught
@@ -297,12 +298,12 @@ module Merb
       start = Time.now
       _call_filters(_after_filters)
       @_benchmarks[:after_filters_time] = Time.now - start if _after_filters
-    
+
       self._after_dispatch_callbacks.each { |cb| cb.call(self) }
-    
+
       @body
     end
-  
+
     # This method exists to provide an overridable hook for ActionArgs.  It uses #send to call the action method.
     #
     # @param [#to_s] action The action method to dispatch to
@@ -312,7 +313,7 @@ module Merb
     def _call_action(action)
       send(action)
     end
-  
+
     # Calls a filter chain.
     #
     # @param [Array<Filter>] filter_set A set of filters in the form
@@ -434,7 +435,7 @@ module Merb
     def self.before(filter = nil, opts = {}, &block)
       add_filter(self._before_filters, filter || block, opts)
     end
-     
+
     # Removes a filter from the after filter chain.
     # This removes the filter from the filter chain for the whole
     # controller and does not take any options.
@@ -445,7 +446,7 @@ module Merb
     def self.skip_after(filter)
       skip_filter(self._after_filters, filter)
     end
-  
+
     # Removes a filter from the before filter chain.
     #
     # (see AbstractController#skip_after)
@@ -464,13 +465,13 @@ module Merb
       args << {}
       Merb::Router.url(name, *args)
     end
-  
+
     alias_method :relative_url, :url
 
     # Returns the absolute URL including the passed protocol and host.
     #
     # This uses the same arguments as the {#url} method, with added requirements
-    # of protocol and host options. 
+    # of protocol and host options.
     #
     # @api public
     def absolute_url(*args)
@@ -479,15 +480,15 @@ module Merb
       options  = extract_options_from_args!(args) || {}
       protocol = options.delete(:protocol)
       host     = options.delete(:host)
-    
+
       raise ArgumentError, "The :protocol option must be specified" unless protocol
       raise ArgumentError, "The :host option must be specified"     unless host
-    
+
       args << options
-    
+
       protocol + "://" + host + url(*args)
     end
-  
+
     # Generates a URL for a single or nested resource.
     #
     # @see Merb::Router.resource
@@ -542,19 +543,19 @@ module Merb
     # @api private
     def self.add_filter(filters, filter, opts={})
       raise(ArgumentError,
-        "You can specify either :only or :exclude but 
+        "You can specify either :only or :exclude but
          not both at the same time for the same filter.") if opts.key?(:only) && opts.key?(:exclude)
-       
+
        raise(ArgumentError,
-         "You can specify either :if or :unless but 
+         "You can specify either :if or :unless but
           not both at the same time for the same filter.") if opts.key?(:if) && opts.key?(:unless)
-        
+
       opts.each_key do |key| raise(ArgumentError,
         "You can only specify known filter options, #{key} is invalid.") unless FILTER_OPTIONS.include?(key)
       end
 
       opts = normalize_filters!(opts)
-    
+
       case filter
       when Proc
         # filters with procs created via class methods have identical signature
@@ -568,11 +569,11 @@ module Merb
           filters << [filter, opts]
         end
       else
-        raise(ArgumentError, 
+        raise(ArgumentError,
           'Filters need to be either a Symbol, String or a Proc'
-        )        
+        )
       end
-    end  
+    end
 
     # Skip a filter that was previously added to the filter chain. Useful in
     # inheritence hierarchies.
