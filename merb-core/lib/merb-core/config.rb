@@ -379,6 +379,10 @@ module Merb
             options[:verbose] = true
           end
 
+          opts.on("--silent", "Do not print out Merb bootloader messages (root, loading, logging)") do
+            options[:silent] = true
+          end
+
           opts.on("-C", "--console-trap", "Enter an irb console on ^C") do
             options[:console_trap] = true
           end
