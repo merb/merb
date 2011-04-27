@@ -585,14 +585,6 @@ module Merb
       Merb::BootLoader::ReloadClasses.reload
     end
 
-    # ==== Returns
-    # Boolean:: True if Merb bootloader STDOUT messages are being silenced
-    #
-    # :api: public
-    def silent?
-      $SILENT ||= Merb::Config[:silent]
-    end
-
     # Check if running in a testing environment.
     #
     # @return [Boolean] True if Merb environment is testing for instance,

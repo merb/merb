@@ -381,7 +381,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     if Merb::Config[:log_file]
       log_file = Merb::Config[:log_file]
       raise "log file should be a string, got: #{log_file.inspect}" unless log_file.is_a?(String)
-      STDOUT.puts "Logging to file at #{log_file}" unless Merb.testing? || Merb.silent?
+      STDOUT.puts "Logging to file at #{log_file}" unless Merb.testing?
       
       # try to create log directory (if it doesnt exist)
       log_directory = File.dirname(log_file)
@@ -437,7 +437,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
     def self.load_env_config
       if env_config?
         env_config_path = relative_to_merb_path(env_config)
-        STDOUT.puts "Loading #{env_config_path}" unless Merb.testing? || Merb.silent?
+        STDOUT.puts "Loading #{env_config_path}" unless Merb.testing?
         load(env_config)
       end
       nil
@@ -466,7 +466,7 @@ class Merb::BootLoader::Dependencies < Merb::BootLoader
       return nil if Merb.const_defined?("INIT_RB_LOADED")
       if File.exists?(initfile)
         initfile_path = relative_to_merb_path(initfile)
-        STDOUT.puts "Loading init file from #{initfile_path}" unless Merb.testing? || Merb.silent?
+        STDOUT.puts "Loading init file from #{initfile_path}" unless Merb.testing?
         load(initfile)
         Merb.const_set("INIT_RB_LOADED", true)
       elsif !Merb.testing?
