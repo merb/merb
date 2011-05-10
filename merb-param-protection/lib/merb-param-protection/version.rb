@@ -1,5 +1,5 @@
 module Merb
-  module ParamProtection
+  class ParamProtection
     VERSION = '1.2.0'.freeze
   end
 end

@@ -1,5 +1,5 @@
 module Merb
-  module Generators
+  class Generators
 
     VERSION = '1.2.0'.freeze
 

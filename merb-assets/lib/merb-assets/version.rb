@@ -1,5 +1,5 @@
 module Merb
-  module Assets
+  class Assets
     VERSION = '1.2.0'.freeze
   end
 end
