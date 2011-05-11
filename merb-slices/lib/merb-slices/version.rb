@@ -1,5 +1,5 @@
 module Merb
-  class Slices
+  module Slices
     VERSION = '1.2.0'.freeze
   end
 end
