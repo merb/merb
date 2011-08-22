@@ -160,7 +160,7 @@ module Merb
     #
     # @api plugin
     def self.query(query_string, delimiter = '&;', preserve_order = false)
-      query = preserve_order ? ActiveSupport::OrderHash.new : {}
+      query = preserve_order ? ActiveSupport::OrderedHash.new : {}
       for pair in (query_string || '').split(/[#{delimiter}] */n)
         key, value = unescape(pair).split('=',2)
         next if key.nil?
