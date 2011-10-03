@@ -1,6 +1,6 @@
 begin
   require "methopara"
-rescue
+rescue LoadError
   puts "Make sure you have methopara http://github.com/genki/methopara installed if you want to use action args on Ruby 1.9"
 end
 
