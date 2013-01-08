@@ -1,6 +1,6 @@
 source "http://rubygems.org"
 
-gem 'extlib', '>= 0.9.13'
+gem 'extlib', '>= 0.9.17'
 gem 'erubis'
 gem 'rake'
 gem 'rack'
