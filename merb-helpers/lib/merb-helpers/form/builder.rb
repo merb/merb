@@ -411,7 +411,7 @@ module Merb::Helpers::Form::Builder
 
       header_message = header % [errors.size, errors.size == 1 ? "" : "s"]
       markup = %Q{<div class='#{error_class}'>#{header_message}<ul>}
-      errors.each {|err| markup << (build_li % err.join(" "))}
+      errors.each_full {|err| markup << (build_li % err)}
       markup << %Q{</ul></div>}
     end
 
