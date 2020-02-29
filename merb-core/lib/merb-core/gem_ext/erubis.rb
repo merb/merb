@@ -61,9 +61,9 @@ module Erubis
       rest = pos == 0 ? input : input[pos..-1]   # ruby1.9
       add_text(src, rest)
     end
-    
+
   end
-  
+
   class MEruby < Erubis::Eruby
     include PercentLineEnhancer
     include StringBufferEnhancer
@@ -78,7 +78,7 @@ module Erubis
   #   binding.
   #
   # :api: private
-  def self.load_yaml_file(file, binding = binding)
+  def self.load_yaml_file(file, binding = binding())
     YAML::load(Erubis::MEruby.new(IO.read(File.expand_path(file))).result(binding))
   end
 end
