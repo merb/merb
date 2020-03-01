@@ -1,5 +1,14 @@
 require "optparse"
 
+# fix issue with Templater and Ruby >= 2.5
+# issue produced by extlib gem required by templater
+# extlib add to_hash method to Array class
+# Ruby >= 2.5 use it by unrecognized cause and destroy parameter when  OptionParser.parse!() called
+# so, solution is remove to_hash from Array because no code from Templater use this method
+class Array
+  remove_method :to_hash
+end
+
 module Merb
 
   class Config
@@ -56,7 +65,7 @@ module Merb
         yield @configuration
         nil
       end
-      
+
       # Detects whether the provided key is in the config.
       #
       # ==== Parameters
@@ -156,10 +165,10 @@ module Merb
       def setup(settings = {})
         # Merge new settings with any existing configuration settings
         settings = @configuration.merge(settings) unless @configuration.nil?
-        
+
         # Merge new settings with default settings
         config = defaults.merge(settings)
-        
+
         unless config[:reload_classes]
           config[:fork_for_class_load] = false
         end
@@ -168,11 +177,11 @@ module Merb
         unless config.key?(:reap_workers_quickly)
           config[:reap_workers_quickly] = dev_mode & !config[:cluster]
         end
-        
+
         unless config.key?(:bind_fail_fatal)
           config[:bind_fail_fatal] = dev_mode
         end
-        
+
         # Set mutex to dispatcher
         ::Merb::Dispatcher.use_mutex = config[:use_mutex]
 
@@ -195,7 +204,7 @@ module Merb
 
         # Environment variables always win
         options[:environment] = ENV["MERB_ENV"] if ENV["MERB_ENV"]
-        
+
         # Build a parser for the command line arguments
         opts = OptionParser.new do |opts|
           opts.version = Merb::VERSION
@@ -225,13 +234,13 @@ module Merb
                   "background.") do |daemon|
             options[:daemonize] = true
           end
-          
+
           opts.on("-N", "--no-daemonize", "This will allow you to run a " \
                   "cluster in console mode") do |no_daemon|
             options[:daemonize] = false
           end
 
-          opts.on("-c", "--cluster-nodes NUM_MERBS", Integer, 
+          opts.on("-c", "--cluster-nodes NUM_MERBS", Integer,
                   "Number of merb daemons to run.") do |nodes|
             options[:daemonize] = true unless options.key?(:daemonize)
             options[:cluster] = nodes
@@ -352,7 +361,7 @@ module Merb
             port = "main" if port == "all"
             options[:port] = port
           end
-          
+
           opts.on("--fast-deploy", "Reload the code, but not your" \
             "init.rb or gems") do
               options[:action] = :fast_deploy
